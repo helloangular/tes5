@@ -1,0 +1,61 @@
+import spock.lang.Specification
+import spock.lang.Unroll
+import spock.lang.Ignore
+
+import groovy.json.JsonSlurper
+
+import groovy.text.SimpleTemplateEngine
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory
+
+import javax.xml.transform.stax.StAXResult
+import javax.xml.transform.stax.StAXSource
+
+class TestSpec extends Specification {
+
+  	private static final Logger LOGGER = LoggerFactory.getLogger(TestSpec.class);
+
+	def headerMap = ["Content-Type" : "application/json" , "Accept" : "application/json"]
+
+	def requestSpec = new RequestSpecBuilder().setBaseUri(baseURI as String).addHeaders(headerMap).build()
+
+	def setupSpec() {
+
+	}
+
+
+	@Unroll("#city , #country")
+	def "Test2” () {
+	
+		given: "New Tax Quote"
+			def request = getRequest(city)
+	
+		when: "Request is posted"
+			def response = RestAssured.given().spec(request).post(this."$path")
+			println response.body().asString()
+
+		then: "Response code is 200"
+			response.statusCode == 200
+			response.jsonPath().get("result.source") == source
+			response.jsonPath().get("result.amount") == amount
+
+		where:
+
+
+
+	}
+	
+
+	def getRequest(city) {
+		def replacements = [City:city,Country:country]
+		def body = new SimpleTemplateEngine().createTemplate(new File("./quote.json").text).make(replacements).toString()
+		def jsonSlurper = new JsonSlurper()
+		def json = jsonSlurper.parseText(body)
+		return RestAssured.given().spec(requestSpec).body(json)
+ 	}
+
+
+
+}
+
+ 
